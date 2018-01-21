@@ -1,16 +1,26 @@
 version: '2'
+
+volumes:
+  nginx-log-files:
+  fluentd-log-files:
+
 services:
   web:
-    image: httpd
+    image: nginx
     ports:
-      - "80:80"
+      - "8000:80"
+    volumes:
+      - nginx-log-files:/var/log
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+  fluent-agent:
+    image: fluent/fluentd:v1.0-debian
+    volumes:
+      - nginx-log-files:/var/log
+      - fluentd-log-files:/fluentd/log
+      - ./fluent-agent/conf:/fluentd/etc
     links:
       - fluentd
-    logging:
-      driver: "fluentd"
-      options:
-        fluentd-address: localhost:24224
-        tag: httpd.access
 
   fluentd:
     build: ./fluentd
