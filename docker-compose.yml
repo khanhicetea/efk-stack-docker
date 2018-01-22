@@ -2,7 +2,8 @@ version: '2'
 
 volumes:
   nginx-log-files:
-  fluentd-log-files:
+  fluentbit-log-files:
+  es-data:
 
 services:
   web:
@@ -13,13 +14,15 @@ services:
       - nginx-log-files:/var/log
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
 
-  fluent-agent:
-    image: fluent/fluentd:v1.0-debian
+  fluent-bit:
+    image: fluent/fluent-bit:0.12
     volumes:
       - nginx-log-files:/var/log
-      - fluentd-log-files:/fluentd/log
-      - ./fluent-agent/conf:/fluentd/etc
+      - fluentbit-log-files:/fluent-bit/log
+      - ./fluent-bit/conf/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
     links:
+      - fluentd
+    depends_on:
       - fluentd
 
   fluentd:
@@ -28,12 +31,16 @@ services:
       - ./fluentd/conf:/fluentd/etc
     links:
       - "elasticsearch"
+    depends_on:
+      - elasticsearch
     ports:
       - "24224:24224"
       - "24224:24224/udp"
 
   elasticsearch:
     image: elasticsearch
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
     expose:
       - 9200
     ports:
@@ -45,3 +52,5 @@ services:
       - "elasticsearch"
     ports:
       - "5601:5601"
+    depends_on:
+      - elasticsearch
