@@ -4,6 +4,7 @@ volumes:
   nginx-log-files:
   fluentbit-log-files:
   es-data:
+  # fluentd-log-files:
 
 services:
   web:
@@ -13,6 +14,17 @@ services:
     volumes:
       - nginx-log-files:/var/log
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+  # fluent-agent:
+  #   image: fluent/fluentd:v1.0-debian
+  #   volumes:
+  #     - nginx-log-files:/var/log
+  #     - fluentd-log-files:/fluentd/log
+  #     - ./fluent-agent/conf:/fluentd/etc
+  #   links:
+  #     - fluentd
+  #   depends_on:
+  #     - fluentd
 
   fluent-bit:
     image: fluent/fluent-bit:0.12
